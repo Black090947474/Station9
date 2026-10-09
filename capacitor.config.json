@@ -1,0 +1,8 @@
+{
+  "appId": "com.station9.game",
+  "appName": "Station 9",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#040605"
+  }
+}
