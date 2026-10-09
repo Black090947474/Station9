@@ -578,7 +578,7 @@ const glowRed=glowTex('rgba(255,40,20,.7)');
 function buildHead(skin,overlay){
   const head=new THREE.Group();let ro=0;
   const add=(m,par=head)=>{if(overlay){m.renderOrder=1000+(ro++);m.material=m.material.clone();m.material.depthTest=false;m.material.depthWrite=false;m.material.fog=false;}else m.castShadow=true;par.add(m);return m;};
-  const faceMat=new THREE.MeshStandardMaterial({map:FACE,roughness:.5,emissive:0x2a1c16,emissiveMap:FACE,emissiveIntensity:overlay?.9:.35});
+  const faceMat=new THREE.MeshStandardMaterial({map:FACE,roughness:.5,emissive:0x2a1c16,emissiveMap:FACE,emissiveIntensity:overlay?.45:.35});
   const toothMat=new THREE.MeshStandardMaterial({color:0xd9cfae,roughness:.35});
   add(new THREE.Mesh(new THREE.SphereGeometry(.17,22,16),skin)).scale.set(.95,1.35,1.05);
   add(new THREE.Mesh(new THREE.SphereGeometry(.11,12,10),new THREE.MeshBasicMaterial({color:0x050000}))).position.set(0,-.085,.07);
@@ -588,7 +588,7 @@ function buildHead(skin,overlay){
   add(new THREE.Mesh(new THREE.SphereGeometry(.15,18,10,0,Math.PI*2,Math.PI/2,Math.PI/2),skin),jaw).scale.set(.86,1.15,1.08);
   jaw.children[0].position.set(0,0,.03);
   for(let i=0;i<10;i++){const a=-.8+i*.178;const t=add(new THREE.Mesh(new THREE.ConeGeometry(.01,.05+Math.random()*.025,5),toothMat),jaw);t.position.set(Math.sin(a)*.13,.012,Math.cos(a)*.15+.03);}
-  const eyes=[];for(const x of [-.055,.055]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:glowRed,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,fog:false,depthTest:!overlay}));s.scale.set(.1,.1,1);s.position.set(x,.14,.16);if(overlay)s.renderOrder=1100;head.add(s);eyes.push(s);}
+  const eyes=[];for(const x of [-.055,.055]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:glowRed,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,fog:false,depthTest:!overlay}));s.scale.setScalar(overlay?.045:.1);s.position.set(x,.14,overlay?.17:.16);if(overlay)s.renderOrder=1100;head.add(s);eyes.push(s);}
   return {head,jaw,eyes};
 }
 function buildMonster(){
@@ -637,7 +637,7 @@ function animMonster(o,speed,dt,mode){
 /* scare head on camera (drawn over everything) */
 const SH=buildHead(new THREE.MeshStandardMaterial({map:SKIN,color:0xb5ad9f,roughness:.5}),true);
 const scareFace=SH.head;scareFace.visible=false;camera.add(scareFace);
-const scareKey=new THREE.PointLight(0xfff2e0,0,3,2);scareKey.position.set(0,.4,.2);camera.add(scareKey);
+const scareKey=new THREE.PointLight(0xffe6d0,0,3,2);scareKey.position.set(.3,.45,0);camera.add(scareKey);
 const SA={active:false,t:0,dur:0,from:new THREE.Vector3(),to:new THREE.Vector3()};
 let fovKick=0;
 const catchLight=new THREE.PointLight(0xff2010,0,4,2);camera.add(catchLight);
@@ -947,8 +947,8 @@ function behindPos(){const [fx,fz]=fwd();return [P.x-fx*2,EYE,P.z-fz*2];}
 function flicker(n=1.5){for(const l of lamps)l.burst=n*(0.5+Math.random());}
 function faceJump(z=-.8,dur=.32,v=.6){
   const sd=Math.random()<.5?-1:1;SA.active=true;SA.t=0;SA.dur=dur+.2;
-  SA.from.set(sd*(.25+Math.random()*.35),-.3-Math.random()*.25,-1.7);SA.to.set(sd*.02,-.06,-.34);
-  scareFace.position.copy(SA.from);scareFace.scale.setScalar(1.35);scareFace.visible=true;scareKey.intensity=2.5;
+  SA.from.set(sd*(.3+Math.random()*.35),-.4-Math.random()*.25,-2);SA.to.set(sd*.02,-.12,-.62);
+  scareFace.position.copy(SA.from);scareFace.scale.setScalar(1.35);scareFace.visible=true;scareKey.intensity=.9;
   S.scream(v);S.hit();red=.75;shake=1;post.invert=.06;post.glitch=1;post.distort=1;fovKick=-16;}
 function spotAhead(maxD,minD){const [fx,fz]=fwd();for(let d=maxD;d>=minD;d-=.5){const x=P.x+fx*d,z=P.z+fz*d;if(walkable(Math.floor(x/CS),Math.floor(z/CS))&&los(P.x,P.z,x,z)&&Math.hypot(x-M.x,z-M.z)>4)return [x,z];}return null;}
 function ghostShow(x,z){GHOST.g.position.set(x,0,z);GHOST.g.rotation.set(0,Math.atan2(P.x-x,P.z-z),0);GHOST.g.visible=true;}
@@ -1144,7 +1144,7 @@ function updatePlayer(dt){
   // catch sequence
   if(P.caught>0){
     P.caught-=dt;const ty=Math.atan2(-(M.x-P.x),-(M.z-P.z));let da=((ty-P.yaw)%(2*PI)+3*PI)%(2*PI)-PI;P.yaw+=da*Math.min(1,dt*12);P.pitch+=(.35-P.pitch)*Math.min(1,dt*8);
-    SH.jaw.rotation.x=Math.min(1.25,(1.5-P.caught)*6);scareFace.rotation.set((Math.random()-.5)*.25,(Math.random()-.5)*.3,(Math.random()-.5)*.35);scareFace.scale.setScalar(1.4+Math.sin(T*45)*.05+(1.5-P.caught)*.35);scareFace.position.set((Math.random()-.5)*.04,-.06+(Math.random()-.5)*.04,-.34);post.glitch=Math.max(post.glitch,.6);
+    SH.jaw.rotation.x=Math.min(1.25,(1.5-P.caught)*6);scareFace.rotation.set((Math.random()-.5)*.25,(Math.random()-.5)*.3,(Math.random()-.5)*.35);scareFace.scale.setScalar(1.4+Math.sin(T*45)*.05+(1.5-P.caught)*.15);scareFace.position.set((Math.random()-.5)*.04,-.12+(Math.random()-.5)*.04,-.6+(1.5-P.caught)*.05);post.glitch=Math.max(post.glitch,.6);
     camera.position.set(P.x,EYE-(1.5-P.caught)*.4,P.z);camera.rotation.set(P.pitch,P.yaw,(Math.random()-.5)*.1);
     if(P.caught<=0)finishCaught();return;
   }
@@ -1177,7 +1177,7 @@ function updatePlayer(dt){
   const bob=moving?Math.sin(P.bob)*(P.sprinting?.06:.035):0;
   camera.position.set(P.x+(Math.random()-.5)*shake*.06,EYE+bob+(Math.random()-.5)*shake*.06,P.z);
   camera.rotation.set(P.pitch,P.yaw,(Math.random()-.5)*shake*.04+(moving?Math.cos(P.bob*.5)*.008:0));
-  const fon=P.flash&&!P.flashForced;flash.intensity=fon?(lightsTarget<1?0:34*(Math.random()<.004?.2:1)):0;
+  const fon=P.flash&&!P.flashForced&&!SA.active;flash.intensity=fon?(lightsTarget<1?0:34*(Math.random()<.004?.2:1)):0;
 
   // escape
   if(state.exitOpen&&Math.floor(P.x/CS)>=24){P.escaped=true;escaped();}
@@ -1212,7 +1212,7 @@ function updatePlayer(dt){
   const pe=$('#prompt');pe.hidden=!prompt;if(prompt){$('#prompt-t').textContent=prompt;$('#prompt-bar').style.width=(bar*100)+'%';}
   $('#stam-bar').style.width=(P.stamina*100)+'%';$('#stam').style.opacity=P.stamina<.99?1:0;
 }
-function startCaught(){P.caught=1.5;SA.active=false;scareFace.position.set(0,-.06,-.34);scareFace.scale.setScalar(1.4);scareFace.visible=true;scareKey.intensity=2.5;S.hit();post.invert=.06;fovKick=-22;S.scream(1);S.stinger(.5);red=1;shake=1.4;catchLight.intensity=6;revive.target=null;revive.p=0;
+function startCaught(){P.caught=1.5;SA.active=false;scareFace.position.set(0,-.12,-.6);scareFace.scale.setScalar(1.4);scareFace.visible=true;scareKey.intensity=.9;flash.intensity=0;S.hit();post.invert=.06;fovKick=-22;S.scream(1);S.stinger(.5);red=1;shake=1.4;catchLight.intensity=6;revive.target=null;revive.p=0;
   if(document.pointerLockElement&&isTouch===false){/* keep lock during scare */}}
 function finishCaught(){scareFace.visible=false;scareKey.intensity=0;SH.jaw.rotation.x=0;S.flatline();P.down=true;P.downT=0;P.pitch=.1;
   const fade=$('#fade');fade.style.opacity=1;setTimeout(()=>fade.style.opacity=0,450);}
@@ -1246,7 +1246,7 @@ function updateFX(dt){
   shake=Math.max(0,shake-dt*1.6);red=Math.max(0,red-dt*1.2);$('#redflash').style.opacity=red;
   if(SA.active&&P.caught<=0){SA.t+=dt;const k=Math.min(1,SA.t/.07),e=1-Math.pow(1-k,3);scareFace.position.lerpVectors(SA.from,SA.to,e);
     scareFace.position.x+=(Math.random()-.5)*.03;scareFace.position.y+=(Math.random()-.5)*.03;
-    scareFace.rotation.set((Math.random()-.5)*.3,(Math.random()-.5)*.35,(Math.random()-.5)*.4);SH.jaw.rotation.x=Math.min(1.2,SA.t*14);scareFace.scale.setScalar(1.35+SA.t*.7);
+    scareFace.rotation.set((Math.random()-.5)*.3,(Math.random()-.5)*.35,(Math.random()-.5)*.4);SH.jaw.rotation.x=Math.min(1.2,SA.t*14);scareFace.scale.setScalar(1.35+SA.t*.35);
     if(SA.t>SA.dur){SA.active=false;scareFace.visible=false;scareKey.intensity=0;post.flash=-1;post.flashT=.08;}}
   if(post.flashT>0){post.flashT-=dt;if(post.flashT<=0)post.flash=0;}
   // lightning
